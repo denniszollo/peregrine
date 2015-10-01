@@ -69,8 +69,8 @@ class streamer(gr.top_block):
                              sink)
 
         else:
-            for i,filename in enumerate(filenames):
-                src = blocks.file_source(gr.sizeof_char*1, f, False)
+            for i, filename in enumerate(filenames):
+                src = blocks.file_source(gr.sizeof_char*1, filename, False)
                 if dual:
                     channel = i % 2
                     sink = uhd_sinks[i/2]
@@ -106,13 +106,13 @@ class streamer(gr.top_block):
 
                 if noise:
                     combiner = blocks.add_vcc(1)
-                    self.connect(node,
-                                 combiner,
+                    self.connect((node, 0),
+                                 (combiner, 0),
                                  (sink, channel))
                     self.connect(analog.fastnoise_source_c(analog.GR_GAUSSIAN, noise, -222, 8192),
                                  (combiner, 1))
                 else:
-                    self.connect(node,
+                    self.connect((node, 0),
                                  (sink, channel))
 
         print "Setting clocks..."
