@@ -17,7 +17,7 @@ import sys
 import posix
 
 class streamer(gr.top_block):
-    def __init__(self, filenames, dev_addrs, dual
+    def __init__(self, filenames, dev_addrs, dual,
                  onebit, iq, noise, mix, gain, fs, fc, unint, sync_pps):
         gr.top_block.__init__(self)
         if mix:
@@ -25,7 +25,7 @@ class streamer(gr.top_block):
 
         if dual:
             channels = [0 , 1]
-        else
+        else:
             channels = [0]
         uhd_sinks = [
             uhd.usrp_sink(",".join(
@@ -42,9 +42,9 @@ class streamer(gr.top_block):
             sink.set_center_freq(fc, 0)
             sink.set_gain(gain, 0)
             if dual:
-            sink.set_center_freq(fc, 1)
-            sink.set_gain(gain, 1)
-            sink.set_subdev_spec("A:B A:A", 0)
+            	sink.set_center_freq(fc, 1)
+            	sink.set_gain(gain, 1)
+            	sink.set_subdev_spec("A:B A:A", 0)
             # TODO Use offset tuning?
             if sync_pps:
                 sink.set_clock_source("external") # 10 MHz
