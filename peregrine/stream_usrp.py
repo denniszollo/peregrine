@@ -72,11 +72,11 @@ class streamer(gr.top_block):
             for i,filename in enumerate(filenames):
             src = blocks.file_source(gr.sizeof_char*1, f, False)
             if dual:
-                sink = uhd_sinks[i%2]
-                channel = i %2
+                channel = i % 2
+                sink = uhd_sinks[i/2]
             else:
-                sink = uhd_sinks[i]
                 channel = 0
+                sink = uhd_sinks[i]
             if iq:
                 node = blocks.multiply_const_cc(1.0/1024)
                 if onebit:
