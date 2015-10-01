@@ -70,50 +70,50 @@ class streamer(gr.top_block):
 
         else:
             for i,filename in enumerate(filenames):
-            src = blocks.file_source(gr.sizeof_char*1, f, False)
-            if dual:
-                channel = i % 2
-                sink = uhd_sinks[i/2]
-            else:
-                channel = 0
-                sink = uhd_sinks[i]
-            if iq:
-                node = blocks.multiply_const_cc(1.0/1024)
-                if onebit:
-                    self.connect(src,
-                                 blocks.unpack_k_bits_bb(8),
-                                 blocks.char_to_short(), # [0, 1] -> [0, 256]
-                                 blocks.add_const_ss(-128), # [-128, +128],
-                                 blocks.interleaved_short_to_complex(), # [ -128.0, +128.0]
-                                 node) # [-0.125, +0.125]
+                src = blocks.file_source(gr.sizeof_char*1, f, False)
+                if dual:
+                    channel = i % 2
+                    sink = uhd_sinks[i/2]
                 else:
-                    self.connect(src, # [-128..127]
-                                 blocks.interleaved_char_to_complex(), # [-128.0, +127.0]
-                                 node) # [-0.125, +0.125)
+                    channel = 0
+                    sink = uhd_sinks[i]
+                if iq:
+                    node = blocks.multiply_const_cc(1.0/1024)
+                    if onebit:
+                        self.connect(src,
+                                     blocks.unpack_k_bits_bb(8),
+                                     blocks.char_to_short(), # [0, 1] -> [0, 256]
+                                     blocks.add_const_ss(-128), # [-128, +128],
+                                     blocks.interleaved_short_to_complex(), # [ -128.0, +128.0]
+                                     node) # [-0.125, +0.125]
+                    else:
+                        self.connect(src, # [-128..127]
+                                     blocks.interleaved_char_to_complex(), # [-128.0, +127.0]
+                                     node) # [-0.125, +0.125)
 
-            else:
-                node = blocks.float_to_complex(1)
-                if onebit:
-                    self.connect(src,
-                                 blocks.unpack_k_bits_bb(8), # [0, 1] -> [-0.125, +0.125]
-                                 blocks.char_to_float(vlen=1, scale=4),
-                                 blocks.add_const_vff((-0.125, )),
-                                 node)
                 else:
-                    self.connect(src, # [-128..127] -> [-0.125, +0.125)
-                                 blocks.char_to_float(vlen=1, scale=1024),
-                                 node)
+                    node = blocks.float_to_complex(1)
+                    if onebit:
+                        self.connect(src,
+                                     blocks.unpack_k_bits_bb(8), # [0, 1] -> [-0.125, +0.125]
+                                     blocks.char_to_float(vlen=1, scale=4),
+                                     blocks.add_const_vff((-0.125, )),
+                                     node)
+                    else:
+                        self.connect(src, # [-128..127] -> [-0.125, +0.125)
+                                     blocks.char_to_float(vlen=1, scale=1024),
+                                     node)
 
-            if noise:
-                combiner = blocks.add_vcc(1)
-                self.connect(node,
-                             combiner,
-                             (sink, channel))
-                self.connect(analog.fastnoise_source_c(analog.GR_GAUSSIAN, noise, -222, 8192),
-                             (combiner, 1))
-            else:
-                self.connect(node,
-                             (sink, channel))
+                if noise:
+                    combiner = blocks.add_vcc(1)
+                    self.connect(node,
+                                 combiner,
+                                 (sink, channel))
+                    self.connect(analog.fastnoise_source_c(analog.GR_GAUSSIAN, noise, -222, 8192),
+                                 (combiner, 1))
+                else:
+                    self.connect(node,
+                                 (sink, channel))
 
         print "Setting clocks..."
         if sync_pps:
